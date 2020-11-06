@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width"/>
+    <title>sw_demo|kafka</title>
+</head>
+<body>
+    <h3>jedis version: 2.9.0</h3>
+    <a>Index: </a><br>
+    <input type="text" id="user-name" placeholder="name">
+    <br>
+    <input type="text" id="user-age" placeholder="age">
+    <button id="btn-add" onclick="add()">add</button>
+    <br>
+
+    <br>
+    <a>Search:&nbsp;&nbsp;</a>
+    <button id="btn-list" onclick="list()">list</button><br>
+    <dev id="user-list">
+        <table id="tab-user" border="1">
+            <tr>
+                <td>&nbsp;&nbsp;序号&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;名称&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;年龄&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;操作&nbsp;&nbsp;</td>
+            </tr>
+        </table>
+    </dev>
+
+    <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript">
+        function add() {
+            var name =  document.getElementById("user-name").value;
+            var age =  document.getElementById("user-age").value;
+            $.ajax({
+                url: "/redis/add",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: 'json',
+                data: JSON.stringify({
+                    name: name.toString(),
+                    age: age.toString()
+                }),
+                success: function (data) {
+                    document.getElementById("user-name").value = "";
+                    document.getElementById("user-age").value = "";
+                },
+                error: function(data, type, err){
+                    alert("ajax错误类型："+type);
+                    alert(err);
+                },
+            });
+        }
+
+        function list() {
+            $.ajax({
+                url: "/redis/list",
+                type: "GET",
+                success: function (data) {
+                    $("#tab-user").empty();
+                    var content = "<tr>" +
+                        "                <td>&nbsp;&nbsp;序号&nbsp;&nbsp;</td>\n" +
+                        "                <td>&nbsp;&nbsp;名称&nbsp;&nbsp;</td>\n" +
+                        "                <td>&nbsp;&nbsp;年龄&nbsp;&nbsp;</td>\n" +
+                        "                <td >&nbsp;&nbsp;操作&nbsp;&nbsp;</td>\n" +
+                        "            </tr>"
+                    for (var i = 0; i < data.length; i++) {
+                        var index = i + 1;
+                        var user = JSON.parse(data[i]);
+                        var name = user['name'];
+                        var age = user['age'];
+                        var user = "<tr>" +
+                            "                <td>&nbsp;&nbsp;" + index + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;" + name.toString() + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;" + age.toString() + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;<a onclick='del()'>" + "删除" + "</a>&nbsp;&nbsp;</td>\n" +
+                            "            </tr>";
+                        content += user;
+                    }
+                    $("#tab-user").append(content);
+                },
+                error: function () {
+                    alert("获取消息失败！");
+                },
+            });
+        }
+
+        function del() {
+            var name =  document.getElementById("user-name").value;
+            var age =  document.getElementById("user-age").value;
+            $.ajax({
+                url: "/redis/delete",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: 'json',
+                data: JSON.stringify({
+                    name: name.toString(),
+                    age: age.toString()
+                }),
+                success: function (data) {
+                    document.getElementById("user-name").value = "";
+                    document.getElementById("user-age").value = "";
+                },
+                error: function(data, type, err){
+                    alert("ajax错误类型："+type);
+                    alert(err);
+                },
+            });
+        }
+    </script>
+</body>
+</html>

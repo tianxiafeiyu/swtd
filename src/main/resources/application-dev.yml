@@ -15,3 +15,5 @@ monitor:
     password: Tianxiayu@961129
   es:
     address: 120.79.43.44:9200
+  redis:
+    address: 127.0.0.1:6379
