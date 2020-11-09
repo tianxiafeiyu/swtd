@@ -8,7 +8,7 @@
     <title>sw_demo|kafka</title>
 </head>
 <body>
-    <h3>elastic client version: 6.7.1</h3>
+    <h3>elasticsearch-rest-high-level-client version: 6.7.1</h3>
     <a>Index: </a><br>
     <input type="text" id="user-name" placeholder="name">
     <br>
@@ -92,28 +92,31 @@
                     alert("ajax错误类型："+ type + "\n" + err);
                 },
             });
+        }
 
-            function del(obj) {
-                var tr = obj.parentNode.parentNode.children;
-                var name = tr[1].innerHTML.trim().replace(/&nbsp;/ig, '');
-                var age = tr[2].innerHTML.trim().replace(/&nbsp;/ig, '');
-                $.ajax({
-                    url: "/es/delete",
-                    type: "POST",
-                    contentType: "application/json;charset=UTF-8",
-                    data: JSON.stringify({
-                        name: name,
-                        age: age
-                    }),
-                    success: function () {
-                        list()
-                    },
-                    error: function(data, type, err){
-                        alert("ajax错误类型："+ type + "\n" + err);
-                        list();
-                    },
-                });
-            }
+        function del(obj) {
+            var tr = obj.parentNode.parentNode.children;
+            var name = tr[1].innerHTML.trim().replace(/&nbsp;/ig, '');
+            var age = tr[2].innerHTML.trim().replace(/&nbsp;/ig, '');
+            $.ajax({
+                url: "/es/delete",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    name: name,
+                    age: age
+                }),
+                success: function () {
+                    list()
+                },
+                complete: function(){
+                    list()
+                },
+                error: function(data, type, err){
+                    alert("ajax错误类型："+ type + "\n" + err);
+                    list();
+                },
+            });
         }
     </script>
 </body>

@@ -28,15 +28,14 @@ public class EsTestController {
     }
 
     @RequestMapping("/update")
-    public Object update(String jsonData){
+    public Object update(@RequestBody String jsonData){
         esTestService.update(jsonData);
         return null;
     }
 
     @RequestMapping("/delete")
-    public Object delete(String jsonData){
-        esTestService.delete(jsonData);
-        return null;
+    public Object delete(@RequestBody String jsonData){
+        return esTestService.delete(jsonData);
     }
 
     @RequestMapping("/list")

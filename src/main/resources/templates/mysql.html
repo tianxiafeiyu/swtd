@@ -8,31 +8,113 @@
     <title>sw_demo|mysql</title>
 </head>
 <body>
-    <h3>mysql client version: 2.6.0</h3>
-    <a>executeQuery: </a><br>
-    <textarea type="text" id="sql" placeholder="输入要执行的sql语句" rows="10" cols="50"></textarea>
-    <button id="btn-sent" onclick="send()">send</button>
+    <h3>mysql-connector-java version: 2.6.0</h3>
+    <a>executeUpdate: </a><br>
+    <input type="text" id="user-name" placeholder="name">
     <br>
-    <a>result: </a><br>
-    <textarea type="text" id="result" placeholder="" rows="10" cols="50" readonly="true"></textarea>
+    <input type="text" id="user-age" placeholder="age">
+    <button id="btn-sent" onclick="send()">summit</button>
+    <br>
+
+    <br>
+    <a>executeQuery:</a>
+    <button id="btn-list" onclick="list()">list</button><br>
+    <dev id="user-list">
+        <table id="tab-user" border="1">
+            <tr>
+                <td>&nbsp;&nbsp;序号&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;名称&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;年龄&nbsp;&nbsp;</td>
+                <td>&nbsp;&nbsp;操作&nbsp;&nbsp;</td>
+            </tr>
+        </table>
+    </dev>
+
     <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
+    <style type="text/css">
+        a:hover {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
     <script type="text/javascript">
         function send() {
-            var sql =  document.getElementById("sql").value;
+            var name =  document.getElementById("user-name").value;
+            var age =  document.getElementById("user-age").value;
             $.ajax({
-                url: "/mysql/execute",
+                url: "/mysql/add",
                 type: "POST",
                 contentType: "application/json;charset=UTF-8",
                 dataType: 'json',
                 data: JSON.stringify({
-                   sql: sql.toString()
+                    name: name.toString(),
+                    age: age.toString()
                 }),
                 success: function (data) {
-                    document.getElementById("result").value = data;
+                    document.getElementById("user-name").value = "";
+                    document.getElementById("user-age").value = "";
                 },
                 error: function(data, type, err){
-                    alert("ajax错误类型："+type);
-                    alert(err);
+                    alert("ajax错误类型："+ type + "\n" + err);
+                },
+            });
+        }
+
+        function list() {
+            $.ajax({
+                url: "/mysql/list",
+                type: "GET",
+                success: function (data) {
+                    $("#tab-user").empty();
+                    var content = "<tr>" +
+                        "                <td>&nbsp;&nbsp;序号&nbsp;&nbsp;</td>\n" +
+                        "                <td>&nbsp;&nbsp;名称&nbsp;&nbsp;</td>\n" +
+                        "                <td>&nbsp;&nbsp;年龄&nbsp;&nbsp;</td>\n" +
+                        "                <td >&nbsp;&nbsp;操作&nbsp;&nbsp;</td>\n" +
+                        "            </tr>"
+                    for (var i = 0; i < data.length; i++) {
+                        var index = i + 1;
+                        var user = JSON.parse(data[i]);
+                        var name = user['name'];
+                        var age = user['age'];
+                        var user = "<tr>" +
+                            "                <td>&nbsp;&nbsp;" + index + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;" + name.toString() + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;" + age.toString() + "&nbsp;&nbsp;</td>\n" +
+                            "                <td>&nbsp;&nbsp;<a onclick='del(this)' hover=''>" + "删除" + "</a>&nbsp;&nbsp;</td>\n" +
+                            "            </tr>";
+                        content += user;
+                    }
+                    $("#tab-user").append(content);
+                },
+                error: function (data, type, err) {
+                    alert("ajax错误类型："+ type + "\n" + err);
+                },
+            });
+        }
+
+        function del(obj) {
+            var tr = obj.parentNode.parentNode.children;
+            var name = tr[1].innerHTML.trim().replace(/&nbsp;/ig, '');
+            var age = tr[2].innerHTML.trim().replace(/&nbsp;/ig, '');
+            $.ajax({
+                url: "/mysql/delete",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    name: name,
+                    age: age
+                }),
+                success: function () {
+                    list()
+                },
+                complete: function(){
+                    list()
+                },
+                error: function(data, type, err){
+                    alert("ajax错误类型："+ type + "\n" + err);
+                    list();
                 },
             });
         }

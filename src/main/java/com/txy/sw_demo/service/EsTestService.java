@@ -31,7 +31,9 @@ public class EsTestService {
     }
 
     public Object delete(String jsonData) {
-        return null;
+        JSONObject object = JSON.parseObject(jsonData);
+        User user = new User(object.getString("name"), object.getString("age"));
+        return esUserDAO.delete(user);
     }
 
     public Object list() {

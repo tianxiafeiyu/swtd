@@ -31,3 +31,17 @@ SW_OPS=-javaagent:${absolute path}/skywalking-agent.jar=agent.service_name=sw_de
 ```
 
 运行启动脚本，即可添加 `skywalking agent` 代理。
+
+## 配置
+- kafka 需要创建名称为 `test-topic` 主题
+    ```$xslt
+    sh kafka-topics.sh --create --zookeeper 192.168.202.128:2181 --replication-factor 3 --partitions 3 --topic test-topic
+    ```
+- mysql 需要在数据库中创建 `user` 表
+    ```$xslt
+    create table user(
+        name varchar(50),
+        age varchar(3)
+    );
+    ```
+- elasticsearch 需要创建 `user` 索引

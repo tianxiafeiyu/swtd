@@ -10,7 +10,7 @@ monitor:
     address: 127.0.0.1:9092
   mysql:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://localhost:6612/test?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
     username: root
     password: Tianxiayu@961129
   es:
