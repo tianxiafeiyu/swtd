@@ -32,31 +32,27 @@ import java.util.concurrent.TimeUnit;
 public class EsUserDAOImpl implements UserDAO {
     @Value("${monitor.es.address}")
     private String esAddress;
-    private RestHighLevelClient client;
-
     String index = "user";
     String type = "_doc";
 
     private RestHighLevelClient defaultClient(){
-        if(client == null){
             String[] strs = esAddress.split(":");
             String ip = strs[0];
             int port = Integer.valueOf(strs[1]);
 
-            this.client = new RestHighLevelClient(
-                    RestClient.builder(
+            return new RestHighLevelClient(
+                        RestClient.builder(
                             new HttpHost(ip, port, "http"),
                             new HttpHost(ip, port + 1, "http")));
-        }
-        return client;
     }
 
 
     @Override
     public Object add(User user) {
         IndexRequest indexRequest = new IndexRequest(index, type).source("name", user.getName(), "age", user.getAge());
-        try {
-            defaultClient().index(indexRequest);
+        try(RestHighLevelClient client = defaultClient()
+        ) {
+            client.index(indexRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -72,8 +68,9 @@ public class EsUserDAOImpl implements UserDAO {
     public Object list() {
         SearchRequest searchRequest = new SearchRequest(index);
         List<String> result = new ArrayList<>();
-        try {
-            SearchResponse searchResponse = defaultClient().search(searchRequest);
+        try ( RestHighLevelClient client = defaultClient())
+        {
+            SearchResponse searchResponse = client.search(searchRequest);
 
             SearchHits hits = searchResponse.getHits();
             for(SearchHit hit : hits){
@@ -96,25 +93,20 @@ public class EsUserDAOImpl implements UserDAO {
         searchRequest.source(sourceBuilder);
 
         List<String> idList = new ArrayList<>();
-        try {
-            SearchResponse searchResponse = defaultClient().search(searchRequest);
+        try (RestHighLevelClient client = defaultClient())
+        {
+            SearchResponse searchResponse = client.search(searchRequest);
             SearchHits hits = searchResponse.getHits();
             for(SearchHit hit : hits){
                 idList.add(hit.getId());
             }
 
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        BulkRequest bulkRequest = new BulkRequest();
-        for(String id : idList){
-            DeleteRequest deleteRequest = new DeleteRequest(index, type, id);
-            bulkRequest.add(deleteRequest);
-        }
-
-        try {
-            BulkResponse bulkItemResponses = defaultClient().bulk(bulkRequest);
+            BulkRequest bulkRequest = new BulkRequest();
+            for(String id : idList){
+                DeleteRequest deleteRequest = new DeleteRequest(index, type, id);
+                bulkRequest.add(deleteRequest);
+            }
+            BulkResponse bulkItemResponses = client.bulk(bulkRequest);
 
         }catch (IOException e){
             e.printStackTrace();

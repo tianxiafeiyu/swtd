@@ -28,20 +28,15 @@ public class MysqlUserDAOImpl implements UserDAO {
     @Value("${monitor.mysql.password}")
     private String password;
 
-    private Connection con = null;		//连接
-    private PreparedStatement pstmt = null;	//使用预编译语句
-    private ResultSet rs = null;	//获取的结果集
-
     private Connection defaultConnection(){
+        Connection connection = null;
         try {
-            if(con == null || con.isClosed()){
-                Class.forName(driverClassName);
-                con = DriverManager.getConnection(url, username, password);
-            }
+            Class.forName(driverClassName);
+            return DriverManager.getConnection(url, username, password);
         }catch (Exception e){
             e.printStackTrace();
         }
-        return con;
+        return connection;
     }
 
 
@@ -49,14 +44,48 @@ public class MysqlUserDAOImpl implements UserDAO {
     @Override
     public Object add(User user) {
         String sql = "insert into user values(?, ?)";
-        try {
-            PreparedStatement pstm = defaultConnection().prepareStatement(sql);
+        try (
+            Connection connection = defaultConnection();
+            PreparedStatement pstm = connection.prepareStatement(sql)
+        ) {
             pstm.setString(1, user.getName());
             pstm.setString(2, user.getAge());
             pstm.executeUpdate();
-
         }catch (Exception e){
             e.printStackTrace();
+        }
+        return user;
+    }
+
+    public Object add1(User user) {
+        String sql = "insert into user values(?, ?)";
+        Connection connection = null;
+        PreparedStatement pstm = null;
+        try{
+            connection = defaultConnection();
+            pstm = connection.prepareStatement(sql);
+
+            pstm.setString(1, user.getName());
+            pstm.setString(2, user.getAge());
+            pstm.executeUpdate();
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            if(pstm != null){
+                try {
+                    pstm.close();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }finally {
+                    if(connection != null){
+                        try {
+                            connection.close();
+                        }catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
         return user;
     }
@@ -70,8 +99,10 @@ public class MysqlUserDAOImpl implements UserDAO {
     public Object list() {
         List<String> userList = new ArrayList<>();
         String sql = "select * from user";
-        try {
-            PreparedStatement pstm = defaultConnection().prepareStatement(sql);
+        try (
+                Connection connection = defaultConnection();
+                PreparedStatement pstm = connection.prepareStatement(sql)
+        ) {
             ResultSet rs = pstm.executeQuery();
             while (rs.next()){
                 userList.add(JSON.toJSONString(rs));
@@ -86,8 +117,10 @@ public class MysqlUserDAOImpl implements UserDAO {
     @Override
     public Object delete(User user) {
         String sql = "delete from user where name = ?";
-        try {
-            PreparedStatement pstm = defaultConnection().prepareStatement(sql);
+        try (
+                Connection connection = defaultConnection();
+                PreparedStatement pstm = connection.prepareStatement(sql)
+        ) {
             pstm.setString(1, user.getName());
             pstm.executeUpdate();
 

@@ -20,36 +20,32 @@ public class RedisUserDAOImpl implements UserDAO {
     @Value("${monitor.redis.address}")
     private String redisAddress;
 
-    private Jedis client;
-
     private String hashKey = "user";
 
     private Jedis defaultClient(){
-        if(client == null){
-            String[] strs = redisAddress.split(":");
-            String ip = strs[0];
-            int port = Integer.valueOf(strs[1]);
+        String[] strs = redisAddress.split(":");
+        String ip = strs[0];
+        int port = Integer.valueOf(strs[1]);
 
-            this.client = new Jedis(ip, port);
-        }
-        return client;
+        return new Jedis(ip, port);
     }
-
-   /* {
-        // 添加 Hash
-        defaultClient().hmset(hashKey, new HashMap<>());
-    }*/
-
 
     @Override
     public Object add(User user) {
-        defaultClient().hset(hashKey, user.getName(), JSON.toJSONString(user));
+        try(Jedis jedis = defaultClient())
+        {
+            jedis.hset(hashKey, user.getName(), JSON.toJSONString(user));
+        }
+
         return user;
     }
 
     @Override
     public Object get(User user) {
-        String jsonSting = defaultClient().hget(hashKey, user.getName());
+        String jsonSting = "";
+        try(Jedis jedis = defaultClient()) {
+            jsonSting = jedis.hget(hashKey, user.getName());
+        }
         return jsonSting;
     }
 
@@ -57,15 +53,20 @@ public class RedisUserDAOImpl implements UserDAO {
     public Object list() {
         Set<String> keys = defaultClient().hkeys(hashKey);
         List<String> userList = new ArrayList<>();
-        for(String key : keys){
-            userList.add(defaultClient().hget(hashKey, key));
+        try (Jedis jedis = defaultClient()){
+            for(String key : keys){
+                userList.add(jedis.hget(hashKey, key));
+            }
         }
+
         return userList;
     }
 
     @Override
     public Object delete(User user) {
-        defaultClient().hdel(hashKey, user.getName());
+        try(Jedis jedis = defaultClient()) {
+            jedis.hdel(hashKey, user.getName());
+        }
         return "OK";
     }
 }
